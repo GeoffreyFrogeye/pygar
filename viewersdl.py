@@ -1,7 +1,7 @@
 __author__ = 'Geoffrey Frogeye; RAEON'
 
-import sdl2.ext
 from time import time, sleep
+import sdl2.ext
 
 BLACK = sdl2.ext.Color(0, 0, 0)
 
@@ -82,24 +82,19 @@ class GameViewer(object):
             newpos = (int(cell.x / scale - newhalf), int(cell.y / scale - newhalf))
             if cell.id in self.cells: # If already on screen
                 nothandled.remove(cell.id)
-                sp_cell, wd_cell = self.cells[cell.id]
-                if sp_cell.size[0] != newsize:
-                    del sp_cell
-                    sp_cell = self.factory.from_color(sdl2.ext.Color(*cell.color), size=(newsize, newsize))
-                    wd_cell.sprite = sp_cell
+                wd_cell = self.cells[cell.id]
+                if wd_cell.sprite.size[0] != newsize:
+                    del wd_cell.sprite
+                    wd_cell.sprite = self.factory.from_color(sdl2.ext.Color(*cell.color), size=(newsize, newsize))
                 wd_cell.sprite.position = newpos
             else: # If new
-                sp_cell = self.factory.from_color(sdl2.ext.Color(*cell.color), size=(newsize, newsize))
                 wd_cell = sdl2.ext.Entity(self.world)
-                wd_cell.sprite = sp_cell
+                wd_cell.sprite = self.factory.from_color(sdl2.ext.Color(*cell.color), size=(newsize, newsize))
                 wd_cell.position = newpos
-                # wd_cell = Cell(self.world, sp_cell, newpos[0], newpos[1])
-                self.cells[cell.id] = (sp_cell, wd_cell)
+                self.cells[cell.id] = wd_cell
         for cell in nothandled: # Deleting cells
             # TODO Use watchers
-            sp_cell, wd_cell = self.cells[cell]
-            del sp_cell
-            wd_cell.delete()
+            self.cells[cell].delete()
             del self.cells[cell]
 
         # render
