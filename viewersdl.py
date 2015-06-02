@@ -1,4 +1,4 @@
-__author__ = 'Geoffrey Frogeye'
+__author__ = 'Geoffrey Frogeye; RAEON'
 
 import sdl2.ext
 from time import time, sleep
@@ -45,12 +45,35 @@ class GameViewer(object):
         # events
         events = sdl2.ext.get_events()
         for event in events:
-            if event.type == sdl2.SDL_QUIT or event.type == sdl2.SDLK_ESCAPE:
+            if event.type == sdl2.SDL_QUIT:
                 return False
+            elif event.type == sdl2.SDL_MOUSEMOTION:
+                x, y = event.motion.x, event.motion.y
+                x *= scale
+                y *= scale
+                for bot in self.game.bots:
+                    bot.send_move(x, y)
+            elif event.type == sdl2.SDL_KEYDOWN:
+                if event.key.keysym.sym == sdl2.SDLK_w:
+                    for bot in self.game.bots:
+                        bot.send_throw(1)
+                elif event.key.keysym.sym == sdl2.SDLK_SPACE:
+                    for bot in self.game.bots:
+                        bot.send_split(1)
+                elif event.key.keysym.sym == sdl2.SDLK_r:
+                    for bot in self.game.bots:
+                        bot.send_spawn()
+            #     elif event.key.keysym.sym == sdl2.SDL_K_f:
+            #         self.render_special = True
+            # elif event.type == KEYUP:
+            #     if event.key == K_f:
+            #         self.render_special = False
 
-        # draw
+
+        # clear screen
         sdl2.ext.fill(self.renderer.surface, BLACK)
 
+        # draw cells
         nothandled = list(cell for cell in self.cells)
         values = self.game.cells.copy().values()
         for cell in values:
