@@ -2,6 +2,7 @@ __author__ = 'Geoffrey Frogeye; RAEON'
 
 from time import time, sleep
 import sdl2.ext
+import sdl2.sdlgfx
 
 BLACK = sdl2.ext.Color(0, 0, 0)
 
@@ -16,11 +17,7 @@ class GameViewer(object):
         # window
         self.resolution = self.width, self.height = 800, 800
         self.window = sdl2.ext.Window("pygar", size=self.resolution)
-
-        # rendering
-        self.world = sdl2.ext.World()
-        self.renderer = sdl2.ext.SoftwareSpriteRenderSystem(self.window)
-        self.world.add_system(self.renderer)
+        self.context = sdl2.ext.Renderer(self.window)
 
         # objects
         self.factory = sdl2.ext.SpriteFactory(sdl2.ext.SOFTWARE)
@@ -71,35 +68,23 @@ class GameViewer(object):
 
 
         # clear screen
-        sdl2.ext.fill(self.renderer.surface, BLACK)
+        # sdl2.ext.fill(self.renderer.surface, BLACK)
 
         # draw cells
-        nothandled = list(cell for cell in self.cells)
+        self.context.clear(0)
         values = self.game.cells.copy().values()
         for cell in values:
-            newsize = int(cell.size / scale) or 1
-            newhalf = newsize / 2
-            newpos = (int(cell.x / scale - newhalf), int(cell.y / scale - newhalf))
-            if cell.id in self.cells: # If already on screen
-                nothandled.remove(cell.id)
-                wd_cell = self.cells[cell.id]
-                if wd_cell.sprite.size[0] != newsize:
-                    del wd_cell.sprite
-                    wd_cell.sprite = self.factory.from_color(sdl2.ext.Color(*cell.color), size=(newsize, newsize))
-                wd_cell.sprite.position = newpos
-            else: # If new
-                wd_cell = sdl2.ext.Entity(self.world)
-                wd_cell.sprite = self.factory.from_color(sdl2.ext.Color(*cell.color), size=(newsize, newsize))
-                wd_cell.position = newpos
-                self.cells[cell.id] = wd_cell
-        for cell in nothandled: # Deleting cells
-            # TODO Use watchers
-            self.cells[cell].delete()
-            del self.cells[cell]
+            # color = sdl2.ext.Color(cell.color[0], cell.color[1], cell.color[2], 255)
+            color = 0xFF << 24 | cell.color[2] << 16 | cell.color[1] << 8 | cell.color[0]
+            sdl2.sdlgfx.filledCircleColor(self.context.renderer,
+                                          int((cell.x) / scale),
+                                          int((cell.y) / scale),
+                                          int(cell.size / scale) or 1,
+                                          color)
 
         # render
-        self.world.process()
-        self.window.refresh()
+        self.context.present()
+        # self.window.refresh()
 
         return True
 
