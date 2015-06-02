@@ -3,20 +3,7 @@ __author__ = 'Geoffrey Frogeye'
 import sdl2.ext
 from time import time, sleep
 
-WHITE = sdl2.ext.Color(255, 255, 255)
-
-class SoftwareRenderer(sdl2.ext.SoftwareSpriteRenderSystem):
-    def __init__(self, window):
-        super(SoftwareRenderer, self).__init__(window)
-
-    def render(self, components):
-        sdl2.ext.fill(self.surface, sdl2.ext.Color(0, 0, 0))
-        super(SoftwareRenderer, self).render(components)
-
-class Cell(sdl2.ext.Entity):
-    def __init__(self, world, sprite, posx=0, posy=0):
-        self.sprite = sprite
-        self.sprite.position = posx, posy
+BLACK = sdl2.ext.Color(0, 0, 0)
 
 class GameViewer(object):
 
@@ -32,7 +19,7 @@ class GameViewer(object):
 
         # rendering
         self.world = sdl2.ext.World()
-        self.renderer = SoftwareRenderer(self.window)
+        self.renderer = sdl2.ext.SoftwareSpriteRenderSystem(self.window)
         self.world.add_system(self.renderer)
 
         # objects
@@ -62,6 +49,8 @@ class GameViewer(object):
                 return False
 
         # draw
+        sdl2.ext.fill(self.renderer.surface, BLACK)
+
         nothandled = list(cell for cell in self.cells)
         values = self.game.cells.copy().values()
         for cell in values:
@@ -78,7 +67,10 @@ class GameViewer(object):
                 wd_cell.sprite.position = newpos
             else: # If new
                 sp_cell = self.factory.from_color(sdl2.ext.Color(*cell.color), size=(newsize, newsize))
-                wd_cell = Cell(self.world, sp_cell, newpos[0], newpos[1])
+                wd_cell = sdl2.ext.Entity(self.world)
+                wd_cell.sprite = sp_cell
+                wd_cell.position = newpos
+                # wd_cell = Cell(self.world, sp_cell, newpos[0], newpos[1])
                 self.cells[cell.id] = (sp_cell, wd_cell)
         for cell in nothandled: # Deleting cells
             # TODO Use watchers
